@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>本质实验室 · 世界基石深度分析引擎</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23232B29'/%3E%3Ccircle cx='16' cy='11' r='5' fill='none' stroke='%23E8E0CE' stroke-width='2'/%3E%3Cpath d='M6 22h20' stroke='%23B08A3E' stroke-width='2'/%3E%3Cpath d='M10 27h12' stroke='%23A63D2B' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://miaoda.feishu.cn">
+<link href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@500;600;700;900&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F3EFE6;
+  --paper-2:#EAE3D2;
+  --card:#F8F5EC;
+  --ink:#232B29;
+  --ink-2:#4A554F;
+  --ink-3:#7A837D;
+  --accent:#A63D2B;
+  --accent-2:#C05A45;
+  --copper:#B08A3E;
+  --line:rgba(35,43,41,.16);
+  --line-soft:rgba(35,43,41,.09);
+  --shadow:0 1px 2px rgba(35,43,41,.06),0 6px 20px rgba(35,43,41,.05);
+  --c-hard:#3E5C4B;
+  --c-civ:#A67C2E;
+  --c-mot:#A63D2B;
+  --c-tool:#4A5A72;
+  --serif:"Noto Serif SC","Songti SC","SimSun",serif;
+  --sans:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  --r:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-weight:400;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+  font-size:15px;
+}
+::selection{background:rgba(176,138,62,.28)}
+a{color:inherit;text-decoration:none}
+button{font-family:var(--sans);cursor:pointer;border:none;background:none;color:inherit}
+img{max-width:100%}
+
+/* ===== 布局骨架 ===== */
+.wrap{max-width:1160px;margin:0 auto;padding:0 24px}
+
+/* ===== 顶部导航 ===== */
+.topnav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(243,239,230,.92);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line-soft);
+}
+.topnav-inner{display:flex;align-items:center;gap:28px;height:60px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-weight:700;font-size:17px;letter-spacing:.5px}
+.brand-mark{width:30px;height:30px;flex:0 0 30px}
+.brand-mark svg{display:block}
+.nav-links{display:flex;gap:4px;margin-left:auto}
+.nav-links a{
+  padding:7px 14px;border-radius:7px;font-size:14px;color:var(--ink-2);
+  transition:background .18s,color .18s;
+}
+.nav-links a:hover{background:var(--paper-2);color:var(--ink)}
+.nav-links a.on{color:var(--accent);font-weight:600;background:rgba(166,61,43,.08)}
+@media(max-width:640px){
+  .topnav-inner{height:54px;gap:12px}
+  .brand{font-size:15px}
+  .nav-links a{padding:6px 9px;font-size:13px}
+}
+
+/* ===== Hero ===== */
+.hero{
+  padding:76px 0 44px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.hero::before{
+  content:"";position:absolute;left:50%;top:-160px;transform:translateX(-50%);
+  width:720px;height:720px;border-radius:50%;
+  background:radial-gradient(circle,rgba(176,138,62,.10) 0%,rgba(176,138,62,.04) 42%,transparent 68%);
+  pointer-events:none;
+}
+.hero-inner{position:relative}
+.hero-kicker{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:13px;letter-spacing:3px;color:var(--copper);
+  border:1px solid rgba(176,138,62,.4);border-radius:999px;
+  padding:6px 16px;margin-bottom:26px;background:rgba(176,138,62,.06);
+}
+.hero h1{
+  font-family:var(--serif);font-weight:900;font-size:52px;line-height:1.22;
+  letter-spacing:2px;margin-bottom:18px;
+}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p.lead{
+  max-width:620px;margin:0 auto 10px;
+  font-size:17px;color:var(--ink-2);font-weight:300;
+}
+.hero p.sub{font-size:14px;color:var(--ink-3);margin-bottom:38px}
+@media(max-width:640px){
+  .hero{padding:52px 0 32px}
+  .hero h1{font-size:34px}
+  .hero p.lead{font-size:15px}
+}
+
+/* ===== 分析框架示意（三层轴） ===== */
+.axis{
+  display:flex;align-items:stretch;justify-content:center;
+  gap:0;margin:8px auto 0;max-width:860px;
+}
+.axis-step{
+  flex:1;padding:20px 18px;text-align:left;position:relative;
+  background:var(--card);border:1px solid var(--line-soft);border-radius:var(--r);
+}
+.axis-step + .axis-step{margin-left:22px}
+.axis-arrow{
+  position:absolute;right:-22px;top:50%;transform:translateY(-50%);
+  width:22px;height:1px;background:var(--line);
+}
+.axis-arrow::after{
+  content:"";position:absolute;right:0;top:-3px;
+  border:4px solid transparent;border-left-color:var(--ink-3);border-right-width:0;
+}
+.axis-step:last-child .axis-arrow{display:none}
+.axis-num{
+  font-family:var(--serif);font-size:13px;color:var(--copper);
+  letter-spacing:1px;margin-bottom:8px;display:block;
+}
+.axis-step h3{font-family:var(--serif);font-size:19px;font-weight:700;margin-bottom:8px}
+.axis-step p{font-size:13px;color:var(--ink-2);line-height:1.7}
+@media(max-width:760px){
+  .axis{flex-direction:column;gap:12px}
+  .axis-step + .axis-step{margin-left:0}
+  .axis-arrow{display:none}
+}
+
+/* ===== 章节标题 ===== */
+.section{padding:52px 0 8px}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:22px}
+.section-title{
+  font-family:var(--serif);font-size:27px;font-weight:700;letter-spacing:1px;
+  display:flex;align-items:center;gap:14px;
+}
+.section-title::before{
+  content:"";width:6px;height:26px;background:var(--accent);border-radius:3px;flex:0 0 6px;
+}
+.section-desc{font-size:14px;color:var(--ink-3)}
+
+/* ===== 搜索/筛选 ===== */
+.toolbar{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin-bottom:26px}
+.searchbox{
+  flex:1;min-width:240px;position:relative;
+}
+.searchbox input{
+  width:100%;padding:11px 16px 11px 40px;font-size:14px;
+  border:1px solid var(--line);border-radius:var(--r);
+  background:var(--card);color:var(--ink);outline:none;
+  font-family:var(--sans);transition:border .18s,box-shadow .18s;
+}
+.searchbox input:focus{border-color:var(--copper);box-shadow:0 0 0 3px rgba(176,138,62,.14)}
+.searchbox svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--ink-3)}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.filter-btn{
+  padding:8px 15px;font-size:13px;border-radius:999px;
+  border:1px solid var(--line);color:var(--ink-2);background:var(--card);
+  transition:all .16s;
+}
+.filter-btn:hover{border-color:var(--copper);color:var(--ink)}
+.filter-btn.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.count-hint{font-size:13px;color:var(--ink-3);margin-bottom:18px}
+
+/* ===== 概念卡片网格 ===== */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding-bottom:40px}
+.c-card{
+  background:var(--card);border:1px solid var(--line-soft);border-radius:var(--r);
+  padding:22px 20px;cursor:pointer;position:relative;overflow:hidden;
+  transition:transform .2s,border-color .2s,box-shadow .2s;
+  display:flex;flex-direction:column;gap:10px;
+}
+.c-card:hover{transform:translateY(-3px);border-color:rgba(176,138,62,.55);box-shadow:var(--shadow)}
+.c-card::after{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--cc,var(--copper));opacity:.85;
+}
+.c-card-head{display:flex;align-items:center;gap:10px;padding-left:4px}
+.c-card-cat{
+  font-size:11px;letter-spacing:1px;color:var(--cc,var(--copper));
+  border:1px solid color-mix(in srgb,var(--cc,var(--copper)) 45%,transparent);
+  padding:2px 9px;border-radius:999px;background:color-mix(in srgb,var(--cc,var(--copper)) 8%,transparent);
+}
+.c-card-name{font-family:var(--serif);font-size:22px;font-weight:700;padding-left:4px}
+.c-card-tag{font-size:13px;color:var(--ink-2);padding-left:4px;line-height:1.65;flex:1}
+.c-card-meta{display:flex;align-items:center;justify-content:space-between;padding-left:4px;border-top:1px dashed var(--line-soft);padding-top:10px}
+.c-card-meta span{font-size:12px;color:var(--ink-3)}
+.c-card-meta b{font-size:12px;color:var(--accent);font-weight:600}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+
+/* ===== 空状态 ===== */
+.empty{
+  text-align:center;padding:70px 20px;color:var(--ink-3);
+  border:1px dashed var(--line);border-radius:var(--r);grid-column:1/-1;
+}
+.empty b{display:block;font-family:var(--serif);font-size:20px;color:var(--ink-2);margin-bottom:8px}
+
+/* ===== 概念详情 ===== */
+.detail-hero{padding:46px 0 6px}
+.crumb{font-size:13px;color:var(--ink-3);margin-bottom:20px;display:flex;align-items:center;gap:6px}
+.crumb a:hover{color:var(--accent)}
+.detail-title-row{display:flex;align-items:flex-start;gap:22px;flex-wrap:wrap}
+.detail-badge{
+  width:64px;height:64px;border-radius:14px;flex:0 0 64px;
+  background:var(--cc,var(--copper));color:#FDFBF4;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-size:26px;font-weight:700;
+}
+.detail-titles{flex:1;min-width:260px}
+.detail-cat{font-size:12px;letter-spacing:2px;color:var(--cc,var(--copper));margin-bottom:6px;display:block}
+.detail-titles h1{font-family:var(--serif);font-size:40px;font-weight:900;letter-spacing:1px;line-height:1.25}
+.detail-tag{font-size:16px;color:var(--ink-2);margin-top:8px;font-weight:300;max-width:640px;line-height:1.7}
+
+/* 详情三栏 */
+.detail-body{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:34px 0 10px}
+.d-block{
+  background:var(--card);border:1px solid var(--line-soft);border-radius:var(--r);
+  padding:24px 22px;
+}
+.d-block-head{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line-soft)}
+.d-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:0 0 34px}
+.d-icon svg{width:18px;height:18px}
+.d-block-head h2{font-family:var(--serif);font-size:18px;font-weight:700;letter-spacing:.5px}
+.d-block-head .en{font-size:11px;color:var(--ink-3);letter-spacing:1.5px}
+.d-list{display:flex;flex-direction:column;gap:16px}
+.d-item{}
+.d-item-title{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:4px;display:flex;gap:8px;align-items:baseline}
+.d-item-title i{font-style:normal;color:var(--cc,var(--copper));font-family:var(--serif);font-size:13px}
+.d-item p{font-size:13.5px;color:var(--ink-2);line-height:1.72}
+.myth-item{display:flex;gap:10px;align-items:flex-start}
+.myth-x{
+  flex:0 0 20px;width:20px;height:20px;border-radius:50%;margin-top:2px;
+  background:rgba(166,61,43,.1);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;
+}
+.insight-item{display:flex;gap:10px;align-items:flex-start}
+.insight-bullet{flex:0 0 7px;width:7px;height:7px;border-radius:50%;background:var(--cc,var(--copper));margin-top:9px}
+@media(max-width:900px){.detail-body{grid-template-columns:1fr}}
+
+/* 关联概念 */
+.related{padding:10px 0 50px}
+.related h2{font-family:var(--serif);font-size:20px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.related h2::before{content:"";width:5px;height:20px;background:var(--copper);border-radius:3px}
+.rel-chips{display:flex;flex-wrap:wrap;gap:10px}
+.rel-chip{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:9px 16px;border-radius:999px;border:1px solid var(--line);
+  background:var(--card);font-size:14px;transition:all .16s;
+}
+.rel-chip:hover{border-color:var(--copper);transform:translateY(-2px)}
+.rel-chip .dot{width:8px;height:8px;border-radius:50%;background:var(--cc,var(--copper))}
+.rel-chip small{color:var(--ink-3);font-size:12px}
+
+/* ===== 关系网络 ===== */
+.net-wrap{background:var(--card);border:1px solid var(--line-soft);border-radius:var(--r);padding:18px;margin:0 0 44px}
+#netChart{width:100%;height:600px}
+.net-legend{display:flex;flex-wrap:wrap;gap:18px;padding:6px 10px 14px;border-bottom:1px solid var(--line-soft);margin-bottom:10px;font-size:12.5px;color:var(--ink-2)}
+.net-legend .lg{display:flex;align-items:center;gap:7px}
+.net-legend .sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.net-tip{font-size:12.5px;color:var(--ink-3);padding:10px 10px 0;line-height:1.7}
+@media(max-width:640px){#netChart{height:460px}}
+
+/* ===== 深度分析器 ===== */
+.analyzer-hero{padding:46px 0 26px;text-align:center}
+.analyzer-hero h1{font-family:var(--serif);font-size:36px;font-weight:900;letter-spacing:1px}
+.analyzer-hero p{color:var(--ink-2);font-size:15px;max-width:600px;margin:12px auto 0;font-weight:300}
+.ana-input{
+  max-width:640px;margin:26px auto 0;display:flex;gap:10px;flex-wrap:wrap;
+}
+.ana-input input{
+  flex:1;min-width:220px;padding:14px 18px;font-size:16px;
+  border:1px solid var(--line);border-radius:var(--r);background:var(--card);
+  font-family:var(--serif);color:var(--ink);outline:none;
+  transition:border .18s,box-shadow .18s;
+}
+.ana-input input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(166,61,43,.12)}
+.ana-go{
+  padding:14px 30px;border-radius:var(--r);background:var(--ink);color:var(--paper);
+  font-size:15px;font-weight:600;letter-spacing:1px;transition:background .18s,transform .15s;
+}
+.ana-go:hover{background:var(--accent);transform:translateY(-1px)}
+.ana-suggest{margin-top:16px;font-size:13px;color:var(--ink-3)}
+.ana-suggest button{color:var(--copper);border-bottom:1px dashed rgba(176,138,62,.6);margin:0 2px;font-size:13px;padding:2px 4px}
+.ana-suggest button:hover{color:var(--accent)}
+.ana-note{
+  margin:22px auto 0;max-width:640px;font-size:12.5px;color:var(--ink-3);
+  border:1px dashed var(--line);border-radius:var(--r);padding:12px 16px;text-align:left;line-height:1.7;
+}
+/* 分析结果 */
+.ana-result{max-width:900px;margin:10px auto 0;padding-bottom:50px;display:none}
+.ana-result.show{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.ana-q-title{
+  font-family:var(--serif);font-size:21px;font-weight:700;margin:30px 0 4px;
+  display:flex;align-items:center;gap:12px;
+}
+.ana-q-title::before{content:"";width:5px;height:21px;background:var(--accent);border-radius:3px}
+.ana-q-sub{font-size:13px;color:var(--ink-3);margin-bottom:16px}
+.ana-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(max-width:760px){.ana-grid{grid-template-columns:1fr}}
+.ana-cell{background:var(--card);border:1px solid var(--line-soft);border-radius:var(--r);padding:18px}
+.ana-cell h4{font-size:14.5px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.ana-cell h4 .qnum{
+  width:22px;height:22px;border-radius:6px;background:var(--ink);color:var(--paper);
+  font-size:12px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);
+}
+.ana-cell p{font-size:13.5px;color:var(--ink-2);line-height:1.7}
+.ana-cell .eg{
+  margin-top:10px;font-size:12px;color:var(--copper);border-top:1px dashed var(--line-soft);padding-top:9px;
+}
+.ana-cell .eg b{color:var(--accent);font-weight:600}
+
+/* ===== 页脚 ===== */
+.footer{border-top:1px solid var(--line-soft);padding:34px 0 44px;text-align:center;color:var(--ink-3);font-size:13px}
+.footer .f-brand{font-family:var(--serif);font-size:16px;color:var(--ink-2);font-weight:700;margin-bottom:8px;letter-spacing:1px}
+.footer p{line-height:1.9}
+
+/* 通用 */
+.hidden{display:none!important}
+.back-top{
+  position:fixed;right:22px;bottom:22px;width:42px;height:42px;border-radius:50%;
+  background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;z-index:40;
+}
+.back-top.show{opacity:1;pointer-events:auto}
+.back-top:hover{background:var(--accent)}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="wrap topnav-inner">
+    <a class="brand" href="#/" data-route>
+      <span class="brand-mark">
+        <svg viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="7" fill="#232B29"/><circle cx="15" cy="10.5" r="4.5" fill="none" stroke="#E8E0CE" stroke-width="1.8"/><path d="M5.5 20.5h19" stroke="#B08A3E" stroke-width="1.8"/><path d="M9.5 25h11" stroke="#A63D2B" stroke-width="1.8"/></svg>
+      </span>
+      本质实验室
+    </a>
+    <nav class="nav-links">
+      <a href="#/" data-nav="home" data-route>概念库</a>
+      <a href="#/network" data-nav="network" data-route>关系网络</a>
+      <a href="#/analyze" data-nav="analyze" data-route>深度分析器</a>
+    </nav>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="f-brand">本质实验室 · Essence Lab</div>
+    <p>一套用于剖析「世界基本性事物」的深度分析引擎：本质 · 价值 · 现实映射。<br>内容为结构化思辨产物，供参考与启发，不构成任何专业建议。</p>
+  </div>
+</footer>
+
+<button class="back-top" id="backTop" aria-label="回到顶部">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>
+</button>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script>
+/* ============================================================
+ * 数据层：世界基石概念库
+ * ============================================================ */
+const CATS = {
+  hard:  { name:"硬基石",  desc:"世界的物理底座，一切存在的前提", color:"#3E5C4B" },
+  civ:   { name:"文明基石", desc:"让人类可以协作、积累与创造的结构", color:"#A67C2E" },
+  mot:   { name:"动机基石", desc:"驱动人行动与选择的内在力量", color:"#A63D2B" },
+  tool:  { name:"派生工具", desc:"由基石演化出的杠杆与载体", color:"#4A5A72" }
+};
+
+const CONCEPTS = [
+{
+  id:"matter", name:"物质", cat:"hard",
+  tag:"一切存在与财富的实体基底，抽象价值的最终载体",
+  essence:[
+    {t:"第一性", p:"宇宙中可感知、有质量、占据空间的一切。无论文明如何数字化，食物、建筑、芯片、服务器、你的身体，全部由物质构成。"},
+    {t:"机制", p:"物质守恒且不可凭空创造，只能被采集、加工、重组。价值链条的起点永远是物质：矿石变成金属，金属变成设备，设备产出服务。"},
+    {t:"边界", p:"物质的稀缺性与分布不均，决定了资源冲突、供应链风险与财富的地理分布。谁掌握关键物质（稀土、锂、晶圆），谁就掌握产业链咽喉。"}
+  ],
+  value:[
+    {t:"生存基础", p:"没有物质就没有生命与文明的载体，它是所有价值的地基。"},
+    {t:"财富锚点", p:"货币可以超发，物质不会。黄金、土地、房产被视为硬资产，本质是对物质稀缺性的对冲。"},
+    {t:"产业母体", p:"制造业、农业、矿业、建筑业——一切实体产业的本质都是物质的转化与流转。"}
+  ],
+  mapping:[
+    {t:"芯片与稀土", p:"一颗芯片凝聚数百道工序的物质加工，供应链断点即全球产业危机。"},
+    {t:"房地产", p:"房子的价值=土地（稀缺物质）+建材+区位（空间秩序），是物质与规则的复合产物。"},
+    {t:"循环经济", p:"回收与再利用的本质，是在物质守恒约束下提高利用效率的新商业模式。"}
+  ],
+  myths:[
+    {t:"数字时代物质不重要了", p:"恰恰相反——AI、云计算最依赖硅、电与金属。虚拟经济建立在物质底座之上。"},
+    {t:"钱=财富", p:"钱只是兑换凭证，物质才是财富本体。恶性通胀时，纸币贬值而实物仍在。"}
+  ],
+  insights:[
+    {t:"实体锚点", p:"无论做软件还是服务，看清它最终消耗什么物质、依赖哪条供应链，就能提前识别风险与机会。"},
+    {t:"稀缺即价值", p:"在关键物质的稀缺窗口期，掌握渠道、回收、替代材料的人拥有定价权。"}
+  ],
+  relations:["energy","tech","money","rule"]
+},
+{
+  id:"energy", name:"能量", cat:"hard",
+  tag:"一切变化与运转的驱动源，文明的高度由能量密度决定",
+  essence:[
+    {t:"第一性", p:"做功的能力。从肌肉到煤炭、从石油到电力再到核聚变，人类文明史就是一部能量获取与转换史。"},
+    {t:"机制", p:"一切有序系统都在对抗熵增，必须持续输入能量维持。工厂运转、城市运行、你的身体、甚至组织的活力，都是能量的有序化应用。"},
+    {t:"边界", p:"能量转换有损耗（热力学第二定律），没有永动机。能源的可得性、价格与清洁度，决定产业的成本上限与文明的天花板。"}
+  ],
+  value:[
+    {t:"驱动一切", p:"生产、运输、计算、照明——没有能量，所有系统停摆。能量是文明的通用货币。"},
+    {t:"战略资源", p:"能源安全=国家安全。谁掌握低成本清洁能源，谁就在下一轮产业竞争中领先。"},
+    {t:"效率杠杆", p:"能量效率的提升（LED、电动车、先进制程）本身就是巨大的商业价值。"}
+  ],
+  mapping:[
+    {t:"能源转型", p:"从化石能源向风光储氢转移，是未来数十年的确定性大方向，催生万亿级产业链。"},
+    {t:"算力耗电", p:"AI 时代的瓶颈之一就是电。数据中心选址、绿电直供成为硬约束与生意机会。"},
+    {t:"储能", p:"电不能大规模储存，储能技术成为新能源体系的关键缺口，是近年最热赛道之一。"}
+  ],
+  myths:[
+    {t:"新能源=无限能源", p:"风光受天气与地理限制，储能的成本与寿命仍是现实约束。转型是长跑不是神话。"},
+    {t:"能量与秩序无关", p:"组织的熵增（懈怠、混乱、腐化）同样需要'能量'（管理、激励、迭代）来对抗——能量概念远超物理。"}
+  ],
+  insights:[
+    {t:"跟着能量走", p:"关注能量获取、转换、存储、效率四个环节的技术与商业机会，几乎不会踏空时代。"},
+    {t:"对抗熵增", p:"个人与组织要持续'输入能量'（学习、运动、复盘），否则自然滑向混乱与平庸。"}
+  ],
+  relations:["matter","tech","org","money"]
+},
+{
+  id:"time", name:"时间", cat:"hard",
+  tag:"绝对稀缺、不可存储、不可逆的终极资源",
+  essence:[
+    {t:"第一性", p:"变化的度量，一切过程展开的维度。它不可生产、不可储存、不可逆转，对每个人绝对公平地递减。"},
+    {t:"机制", p:"时间是机会成本的载体——选择做 A 就放弃了 B。一切决策、竞争、复利，本质都是在时间维度上的配置。"},
+    {t:"边界", p:"时间窗口决定成败：同一件事，早三年是红利，晚三年是红海。技术成熟度、市场需求、政策节奏都是时间的函数。"}
+  ],
+  value:[
+    {t:"机会成本", p:"时间的价值不在于流逝，而在于如何被配置。用时间换钱是线性模式，用时间换资产与能力才是复利模式。"},
+    {t:"复利前提", p:"复利需要时间作为指数。长期主义之所以稀缺，因为大多数人无法忍受时间带来的延迟反馈。"},
+    {t:"稀缺定价", p:"凡是节省时间的产品（外卖、快递、AI 工具、咨询）都有溢价——时间越贵的人越愿意付费。"}
+  ],
+  mapping:[
+    {t:"风口与周期", p:"产业周期、技术拐点、政策窗口都写在时间里。踏准节奏比努力更重要。"},
+    {t:"时间管理", p:"一切时间管理工具的底层逻辑：把有限时间分配到最高杠杆率的事上。"},
+    {t:"deadline 与拖延", p:"时间是约束，也是生产力——截止日期是最古老有效的激励装置。"}
+  ],
+  myths:[
+    {t:"等准备好了再开始", p:"机会窗口不等人的完备状态。很多赛道是先进场边学习，'准备好'往往意味着错过。"},
+    {t:"时间可以管理", p:"时间本身不可管理，可管理的是注意力和优先级。真正的时间管理是取舍。"}
+  ],
+  insights:[
+    {t:"配置即战略", p:"对个人和公司，'时间花在哪'比'钱花在哪'更本质。定期审计自己的时间去向。"},
+    {t:"抢占窗口", p:"看到结构性机会时，用最小成本快速入场验证，而不是等'完美时机'。"}
+  ],
+  relations:["life","money","knowledge","tech"]
+},
+{
+  id:"info", name:"信息", cat:"hard",
+  tag:"消除不确定性的信号，现代经济的新血液",
+  essence:[
+    {t:"第一性", p:"减少不确定性的内容。一个消息、一组数据、一段代码、一句承诺，都是信息的形态。"},
+    {t:"机制", p:"信息可无限复制、边际成本趋零，这是它与物质、能量最根本的区别——用不完、抢不走（除非被垄断）。"},
+    {t:"边界", p:"信息不对称是利润与权力的古老来源：知道得早、知道得准、知道得全，就占据博弈优势。但信息过载同样产生噪音成本。"}
+  ],
+  value:[
+    {t:"决策原料", p:"一切决策的质量上限由信息质量决定。优质信息本身就是稀缺资产。"},
+    {t:"商业套利", p:"信息差是最古老的生意：套利、中介、咨询、情报、教育，本质都是搬运或加工信息。"},
+    {t:"生产要素", p:"数据被定义为新的生产要素——AI 的燃料，数字经济的血液。"}
+  ],
+  mapping:[
+    {t:"AI 与数据", p:"大模型的本质是海量信息的压缩与重组。掌握高质量数据源=掌握 AI 时代的稀缺资源。"},
+    {t:"媒体与注意力", p:"新闻、算法推荐、自媒体争夺的都是注意力——注意力的本质是信息消费时间。"},
+    {t:"内幕与合规", p:"利用信息差牟利是灰色地带（内幕交易、数据泄露），信息的获取与使用被越来越严格地规制。"}
+  ],
+  myths:[
+    {t:"信息越多越好", p:"信息过载会瘫痪决策。筛选、验证与结构化信息的能力，比占有信息更重要。"},
+    {t:"信息=知识", p:"信息是原料，知识是被验证、被组织、能指导行动的信息。二者隔着思考与实践。"}
+  ],
+  insights:[
+    {t:"建立信息优势", p:"深耕一个领域，建立别人没有的信息网络（行业人脉、数据、一手渠道），就是最硬的竞争力。"},
+    {t:"警惕噪音", p:"主动管理信息摄入：减少无效刷屏，把注意力投给能改变决策的高质量信息。"}
+  ],
+  relations:["knowledge","language","power","money"]
+},
+{
+  id:"knowledge", name:"知识", cat:"civ",
+  tag:"把物质与能量转化为价值的方法论，可跨代积累的文明资本",
+  essence:[
+    {t:"第一性", p:"被验证、可传递、能指导行动的信息组织。同样的物质与能量，因为知识不同而产出天差地别——沙子可以变成芯片，也可以只是沙子。"},
+    {t:"机制", p:"知识通过编码（语言、数学、代码）存储与传递，可以跨代积累。这是人类区别于其他物种、文明得以叠加的根本。"},
+    {t:"边界", p:"知识的价值在于应用。死知识不产生价值，知识+场景+执行才等于生产力。且知识会过时——半衰期越来越短。"}
+  ],
+  value:[
+    {t:"转化杠杆", p:"知识是把低价值物质转化为高价值产品（矿石→芯片）、把问题转化为方案的核心能力。"},
+    {t:"复利资产", p:"知识符合复利：越用越多、越积累越值钱，且可与他人共享而自己不损失。"},
+    {t:"垄断壁垒", p:"行业 know-how、专利、工艺秘密是难以复制的护城河——真正的差异化来自知识深度。"}
+  ],
+  mapping:[
+    {t:"教育与知识付费", p:"把知识打包成课程、书籍、咨询服务，是知识变现的经典路径。"},
+    {t:"专利与标准", p:"专利保护知识创造，标准制定者掌握行业话语权——知识成为制度性权力。"},
+    {t:"软件与算法", p:"软件是知识最纯粹的产品形态：把方法论编码成可重复执行的系统。"}
+  ],
+  myths:[
+    {t:"知识免费=知识不值钱", p:"免费的是公开信息，值钱的是'组织好的、可落地的、结合场景的知识'——后者永远稀缺。"},
+    {t:"知道=做到", p:"从知道到做到隔着刻意练习、反馈与执行体系。知行合一才是知识的完成形态。"}
+  ],
+  insights:[
+    {t:"封装知识", p:"把经验封装成课程、软件、方法论、流程，让知识从'个人能力'变成'可交易资产'。"},
+    {t:"建立 T 型知识", p:"一纵（深耕专业）一横（商业、沟通、行业认知），是技术人向价值端跃迁的关键。"}
+  ],
+  relations:["info","language","tech","org","power"]
+},
+{
+  id:"language", name:"语言", cat:"civ",
+  tag:"思维与协作的编码系统，一切文明结构的地基",
+  essence:[
+    {t:"第一性", p:"将思想编码为可传递符号的系统。语言不只是沟通工具，它同时是思维的结构——你能表达到什么程度，往往就是你能想到什么程度。"},
+    {t:"机制", p:"语言使抽象成为可能：计划、承诺、法律、理论、未来，都依赖语言才能被共同建构。合同是语言的契约化，代码是语言的机械化。"},
+    {t:"边界", p:"语言有边界（不可言说的部分难以传递），也有权力（谁定义词汇谁塑造认知）。翻译、话术、命名都是语言权力的运用。"}
+  ],
+  value:[
+    {t:"协作前提", p:"大规模协作依赖共同的编码系统。语言的统一（普通话、英语、编程语言）直接决定协作规模与效率。"},
+    {t:"信任载体", p:"承诺、契约、品牌话术——信任的建立与传递高度依赖语言。精准表达降低误解成本。"},
+    {t:"思维工具", p:"语言结构影响思维结构：学习第二语言、编程语言、数学语言，都是在扩展思维的维度。"}
+  ],
+  mapping:[
+    {t:"编程语言", p:"与机器协作的语言。掌握越多'与不同对象沟通的语言'，能调动的资源越多。"},
+    {t:"合同与法条", p:"商业世界的确定性建立在语言的精确性上——一个词可以决定千万级的责任归属。"},
+    {t:"品牌与表达", p:"同一产品，表达不同价值不同。语言的叙事能力是商业与个人竞争力的重要组成。"}
+  ],
+  myths:[
+    {t:"语言只是工具", p:"语言是思维的边界（维特根斯坦：我的语言的界限即我的世界的界限）。贫瘠语言=贫瘠思维。"},
+    {t:"表达不重要", p:"在协作与交易中，表达不清是最大的隐性成本之一。会说=能把价值传递出去。"}
+  ],
+  insights:[
+    {t:"修炼表达", p:"写作、演讲、产品文案——把复杂讲简单的能力，是杠杆率极高的通用技能。"},
+    {t:"翻译价值", p:"技术人的超能力是'翻译'：把技术语言翻译成业务语言，把问题翻译成方案。"}
+  ],
+  relations:["knowledge","trust","rule","info"]
+},
+{
+  id:"trust", name:"信任", cat:"civ",
+  tag:"社会协作的隐形润滑剂，货币与契约的母体",
+  essence:[
+    {t:"第一性", p:"对他人未来行为的稳定预期——相信对方会履约、不会伤害自己。信任是社会运行成本的核心变量。"},
+    {t:"机制", p:"信任的建立极慢（需要长期一致行为），崩塌极快（一次背叛即可清零），且一旦破损极难修复。它是所有关系与商业的隐形资产负债表。"},
+    {t:"边界", p:"信任不是无限的：它依赖制度背书（法律、监管）、声誉机制（品牌、评价）与关系网络。社会越复杂，越需要'制度化的信任'。"}
+  ],
+  value:[
+    {t:"降低交易成本", p:"有信任就不需要反复验证、抵押、打官司。信任每多一分，协作成本就低一分。"},
+    {t:"货币之基", p:"货币本质是全社会对'它的购买力'的信任。信用崩塌时，纸币与财富一起蒸发。"},
+    {t:"品牌与声誉", p:"品牌是消费者信任的浓缩。声誉是个人与企业在长期中的无形资产，直接决定溢价能力。"}
+  ],
+  mapping:[
+    {t:"品牌溢价", p:"同品质产品，信任度高的品牌可以卖出更高价格——信任直接变现为利润。"},
+    {t:"征信与担保", p:"金融系统把信任量化成信用分数，成为借贷、租赁、就业的准入门槛。"},
+    {t:"平台经济", p:"淘宝、滴滴、Airbnb 的本质是构建'陌生人之间的信任基础设施'。"}
+  ],
+  myths:[
+    {t:"信任是虚的", p:"信任是最硬的无形资产。一次失信（数据泄露、欺诈、翻车）足以摧毁数年积累。"},
+    {t:"聪明就能赢", p:"短期的聪明（套路、钻空子）会透支长期信任。真诚与一致性才是复利来源。"}
+  ],
+  insights:[
+    {t:"先建立信任", p:"对个人：口碑=职业生命线。对公司：先做小范围可信交付，再谈规模扩张。"},
+    {t:"制度兜底", p:"重大合作不要只靠信任——用合同、验货、分阶段付款把信任制度化，保护双方。"}
+  ],
+  relations:["money","rule","language","org"]
+},
+{
+  id:"rule", name:"规则", cat:"civ",
+  tag:"让大规模协作成为可能的确定性框架",
+  essence:[
+    {t:"第一性", p:"约束行为的约定：法律、道德、习俗、市场机制、平台条款、技术标准。规则把不可预测的社会博弈转化为可预期、可计算的协作。"},
+    {t:"机制", p:"规则通过奖惩（强制力）与共识（内化）双重机制生效。它既保护（产权、契约、安全）也限制（准入、竞争、自由）。"},
+    {t:"边界", p:"规则不是天然给定的，而是利益博弈的结果。规则的变化（立法、监管、标准修订）会重新分配利益——看懂规则变迁的人看到机会。"}
+  ],
+  value:[
+    {t:"确定性", p:"稳定的规则让长期投资与规划成为可能。法治程度决定商业环境的可预期性。"},
+    {t:"降低冲突成本", p:"规则把无穷的博弈压缩为标准的裁决程序，大幅降低社会与商业的摩擦成本。"},
+    {t:"保护创新", p:"产权制度保护创造者收益，专利、版权、商标让创新可以被定价和交易。"}
+  ],
+  mapping:[
+    {t:"监管红利", p:"每次重大监管变化（数据安全、平台反垄断、行业牌照）都在重塑竞争格局——合规能力成为竞争力。"},
+    {t:"标准之争", p:"谁主导标准（通信、AI 安全、碳核算），谁就掌握产业链的定义权与长期收益。"},
+    {t:"平台规则", p:"在平台生态里，规则即生存环境。理解并顺应算法规则的人获得流量分配。"}
+  ],
+  myths:[
+    {t:"规则只是束缚", p:"规则同时是保护伞。没有产权规则，创造者无法保有成果；没有契约规则，交易无法扩张。"},
+    {t:"规则不可改变", p:"规则是博弈结果，会被技术进步与社会共识推动而演化。守旧者被规则淘汰，洞察者利用规则转型。"}
+  ],
+  insights:[
+    {t:"画出规则地图", p:"进入任何行业，先画出它的规则地图：牌照、资质、合规红线、补贴政策——规则里藏着机会与雷区。"},
+    {t:"做合规套利者", p:"在规则变化的前沿（新行业、新政策）合法布局，是低风险高收益的策略。"}
+  ],
+  relations:["trust","org","power","money"]
+},
+{
+  id:"org", name:"组织", cat:"civ",
+  tag:"把个体能力放大为集体成就的结构系统",
+  essence:[
+    {t:"第一性", p:"为实现共同目标而进行的分工协作结构。组织的神奇之处：1+1 可以大于 2（协作涌现），也可以小于 1（内耗）——差别全在结构设计。"},
+    {t:"机制", p:"组织通过目标对齐、分工、流程、激励与信息流把个体串联成系统。组织本身对抗熵增：不持续治理就会腐化、僵化、官僚化。"},
+    {t:"边界", p:"组织有生命周期：创业期的敏捷、扩张期的规模、成熟期的惯性、衰退期的僵化。组织形态必须匹配业务阶段与环境复杂度。"}
+  ],
+  value:[
+    {t:"放大能力", p:"一个人造不了火箭，一个组织可以。组织让普通人通过协作完成个体不可能完成的事。"},
+    {t:"风险共担", p:"公司、保险、合伙制——组织把个体风险分散到集体，让大胆尝试成为可能。"},
+    {t:"知识沉淀", p:"优秀组织把个人经验固化为流程、制度、文化，形成不依赖任何个体的集体智慧。"}
+  ],
+  mapping:[
+    {t:"公司与创业", p:"创业的本质是组织资源：把人才、资本、技术、渠道组织起来服务一个需求。"},
+    {t:"平台生态", p:"平台是新型组织：不拥有员工，但组织着数百万供给方与需求方的协作。"},
+    {t:"组织病", p:"大公司病（流程臃肿、激励错位）是熵增的典型表现，也是咨询与数字化改造的市场。"}
+  ],
+  myths:[
+    {t:"组织=人多", p:"组织是结构不是人数。几个人的精悍团队可以打败上千人的僵化组织。"},
+    {t:"文化是虚的", p:"组织文化是激励、决策与协作的默认操作系统，决定组织能走多远。"}
+  ],
+  insights:[
+    {t:"设计优于招聘", p:"先设计好责权利结构，再考虑人。糟糕的流程让优秀的人也做不出优秀的结果。"},
+    {t:"个人即组织", p:"个人也可以'组织化'：外包、AI 工具、人脉网络——用结构放大自己的时间。"}
+  ],
+  relations:["rule","tech","meaning","knowledge"]
+},
+{
+  id:"tech", name:"技术", cat:"civ",
+  tag:"把知识变成改变世界的力量，旧秩序的破坏者与新机会的孵化器",
+  essence:[
+    {t:"第一性", p:"知识+工具+工艺，将自然规律转化为可重复、可扩展的人类能力。技术不是知识本身，而是知识'可执行化'的产物。"},
+    {t:"机制", p:"技术变革遵循 S 曲线：萌芽-爆发-成熟-饱和。每次技术范式转移（蒸汽、电力、计算机、AI）都重新分配财富与权力。"},
+    {t:"边界", p:"技术价值=解决真实问题的能力，而非技术本身的先进程度。先进但无需求的技术只是实验室产物；落地创造价值才是技术。"}
+  ],
+  value:[
+    {t:"效率跃迁", p:"技术把单位成本降低几个数量级，从而把'不可能'变成'人人都可用'（手机、搜索引擎、大模型）。"},
+    {t:"创造新市场", p:"技术创造前所未有的需求（电商、社交媒体、移动支付），是经济增长的最强引擎。"},
+    {t:"竞争壁垒", p:"掌握独特技术能力（算法、工艺、专利）的企业获得难以复制的成本或体验优势。"}
+  ],
+  mapping:[
+    {t:"AI 浪潮", p:"大模型正在重写软件、内容、服务的成本结构，是当下最大的技术范式转移。"},
+    {t:"双刃剑", p:"技术也带来失业、隐私、安全、伦理问题——规制与治理成为新产业。"},
+    {t:"技术债", p:"系统的熵增（遗留代码、架构腐化）是技术组织的永恒课题，也是工程能力的试金石。"}
+  ],
+  myths:[
+    {t:"技术越新越有价值", p:"新≠有用。判断技术的价值看它能否在真实场景降低成本或创造体验，而非热度。"},
+    {t:"技术决定论", p:"技术只是变量之一，组织、制度、文化、市场共同决定技术能否兑现价值。"}
+  ],
+  insights:[
+    {t:"跟踪范式转移", p:"在技术 S 曲线的爆发早期进入（学习、应用、布局），是普通人参与时代红利的主要方式。"},
+    {t:"以终为始", p:"从需求倒推技术选型，而不是拿着锤子找钉子。技术为价值服务。"}
+  ],
+  relations:["knowledge","energy","matter","org","time"]
+},
+{
+  id:"life", name:"生命", cat:"mot",
+  tag:"一切价值与意义的出发点，最复杂的自组织系统",
+  essence:[
+    {t:"第一性", p:"能自我维持、复制、演化的系统。生命是宇宙中最复杂的反熵存在——持续从环境摄取能量维持自身秩序。"},
+    {t:"机制", p:"生命以感受（痛苦与愉悦）为导航，以繁衍为目的，以死亡为边界。正是'会死'赋予了选择与意义的分量。"},
+    {t:"边界", p:"生命有限且脆弱。一切人类制度——医疗、养老、保险、伦理——都是围绕生命有限性建立的防御体系。"}
+  ],
+  value:[
+    {t:"需求源头", p:"所有产业最终服务于生命：健康、食物、居住、安全、繁衍、成长。理解生命需求=理解一切市场。"},
+    {t:"创造力主体", p:"一切财富、艺术、技术都是生命创造的。人的潜能是终极资源。"},
+    {t:"伦理底线", p:"生命尊严是文明的底线伦理，也是医疗、科技、法律必须守护的边界。"}
+  ],
+  mapping:[
+    {t:"大健康产业", p:"医疗、器械、药品、健康管理——围绕生命维护的永续赛道，抗周期性强。"},
+    {t:"老龄化", p:"生命延长带来银发经济：养老、康复、陪伴、适老化产品，需求刚性且持续扩大。"},
+    {t:"生物科技", p:"基因编辑、细胞治疗、抗衰老——技术开始直接改造生命本身，伦理与商机并存。"}
+  ],
+  myths:[
+    {t:"人是纯理性的", p:"人首先是生命体，受感受、本能与有限寿命驱动。理解人性比逻辑推理更能预测行为。"},
+    {t:"生命无限", p:"承认有限性不是悲观，而是清醒——它让选择、健康与时间的优先级变得明确。"}
+  ],
+  insights:[
+    {t:"以人为本", p:"任何生意的终极客户都是生命。把'让人活得更好、更久、更有尊严'作为价值导向，方向不会错。"},
+    {t:"珍惜有限", p:"用'生命有限'作为决策过滤器：哪些事值得投入，哪些关系值得维护，一目了然。"}
+  ],
+  relations:["feeling","time","meaning","love"]
+},
+{
+  id:"feeling", name:"感受", cat:"mot",
+  tag:"驱动一切行为的底层引擎：痛苦、愉悦、恐惧与渴望",
+  essence:[
+    {t:"第一性", p:"生命体对环境的评价信号——疼痛让我们避开伤害，愉悦让我们趋向有益，恐惧让我们警觉风险，渴望让我们追求目标。感受先于理性。"},
+    {t:"机制", p:"人的绝大多数行为（消费、选择、关系、职业）由感受驱动，理性只是为感受提供论证的'后置解释器'。理解感受=理解行为。"},
+    {t:"边界", p:"感受可被放大、扭曲与操纵：算法、营销、社群都在制造与利用情绪。感受是真实需求，也是最大的操纵面。"}
+  ],
+  value:[
+    {t:"需求密码", p:"一切市场需求都可以翻译成感受需求：安全、认可、归属、掌控、新鲜、平静。抓住感受就抓住了购买动机。"},
+    {t:"情绪价值", p:"现代消费中情绪价值占比越来越高——体验、仪式感、陪伴、疗愈都是可定价的感受产品。"},
+    {t:"决策内核", p:"重大决策（婚姻、职业、创业）表面上权衡利弊，内核常是感受偏好。自我觉察感受，才能做出真实的选择。"}
+  ],
+  mapping:[
+    {t:"体验经济", p:"旅游、演出、游戏、餐饮氛围——卖的不是功能，是那一刻的感受。"},
+    {t:"品牌心智", p:"品牌建立的是情绪联结：安全感（保险）、身份感（奢侈品）、归属感（社群）。"},
+    {t:"算法与成瘾", p:"推荐算法利用多巴胺机制设计反馈循环——感受可以被工程化地制造与收割。"}
+  ],
+  myths:[
+    {t:"情绪是弱点", p:"情绪不是要消除的弱点，而是要理解的信息源。高手不是无情，而是敏锐于感受的成因。"},
+    {t:"理性主导决策", p:"研究显示多数决策先有感受倾向，再用逻辑合理化。别高估'理性人'假设。"}
+  ],
+  insights:[
+    {t:"感受产品化", p:"做产品时问：它改善了用户哪种感受？强度多大？——这比功能清单更能指导设计。"},
+    {t:"驯服感受", p:"警惕被设计来操纵感受的信息流与消费，保留'觉察-暂停-选择'的元能力。"}
+  ],
+  relations:["life","meaning","beauty","love"]
+},
+{
+  id:"meaning", name:"意义", cat:"mot",
+  tag:"让人愿意长期投入的内在理由，行动力的终极燃料",
+  essence:[
+    {t:"第一性", p:"对'为什么'的回应。意义不是客观存在，而是人主动建构的解释框架——它把痛苦、等待与付出重新定价为'值得'。"},
+    {t:"机制", p:"无意义感会瓦解行动力（空虚、倦怠、躺平），有意义感则提供持续的动机供给。组织亦然：愿景是组织的意义引擎。"},
+    {t:"边界", p:"意义有个人维度（活着的理由）与集体维度（使命、信念）。两者断裂时，人会陷入'做着没意义的事'的耗竭。"}
+  ],
+  value:[
+    {t:"坚持的燃料", p:"意义让人忍受短期痛苦换取长期价值——创业、科研、学习都需要意义作为续航。"},
+    {t:"组织灵魂", p:"使命愿景把'发工资'升级为'共同事业'，是低成本高回报的激励系统。"},
+    {t:"幸福来源", p:"幸福感与'意义感'强相关：被需要、有成长、有贡献，是超越物质满足的深层需求。"}
+  ],
+  mapping:[
+    {t:"使命驱动型公司", p:"从'赚钱'到'改变世界'的叙事升级，让企业与人才产生深度绑定。"},
+    {t:"内卷与倦怠", p:"'为了什么而卷'的缺失，是当代倦怠的根源——没有意义锚点的努力只是消耗。"},
+    {t:"品牌与社群", p:"品牌贩卖的不只是产品，还有意义（生活方式、身份认同、价值观共鸣）。"}
+  ],
+  myths:[
+    {t:"意义是虚的", p:"意义是真实的行为驱动机制。缺了它，再多的钱与资源也难以维持长期投入。"},
+    {t:"意义=宏大叙事", p:"意义可以是微小的：对家人负责、把一件事做好、帮助具体的人。小意义同样有力。"}
+  ],
+  insights:[
+    {t:"找到锚点", p:"主动为自己的工作与生活建构意义（服务谁、创造什么、成为谁），能显著提升动力与韧性。"},
+    {t:"意义叙事", p:"对创业者：把'为什么做'讲清楚，吸引的是愿意共担风险的同路人，而非只谈薪酬的雇佣兵。"}
+  ],
+  relations:["feeling","life","love","org","freedom"]
+},
+{
+  id:"love", name:"爱", cat:"mot",
+  tag:"超越利益计算的深度联结，个体与社会的黏合剂",
+  essence:[
+    {t:"第一性", p:"对特定对象（人、事业、社群）的深度投入与联结。爱的标志性特征：愿意付出超出'划算'计算的成本。"},
+    {t:"机制", p:"爱通过依恋、共情、承诺与共同经历构建，是信任的情感版——信任是行为预期，爱是情感联结。爱需要持续投入，否则会衰减。"},
+    {t:"边界", p:"爱不是无条件的万能钥匙：健康的爱包含边界与尊重。被商业化的'爱'（营销话术）与真实的爱之间有清晰的真空地带。"}
+  ],
+  value:[
+    {t:"深度协作", p:"家庭、挚友、创业团队——爱的联结让协作超越利益博弈，在危机时刻仍能维系。"},
+    {t:"心理健康", p:"被爱感与爱人的能力，是人类心理健康的支柱，也是幸福感的最大来源。"},
+    {t:"创造动力", p:"为所爱之人与事创造，是持续且强烈的行动源泉——很多伟大作品与事业源自爱。"}
+  ],
+  mapping:[
+    {t:"亲密关系产业", p:"婚恋、亲子、宠物经济——爱被产品化、服务化的巨大市场。"},
+    {t:"用户之爱", p:"真正爱用户的公司（产品用心、售后诚实）会获得远超功能价值的忠诚。"},
+    {t:"社群与归属", p:"粉丝社群、兴趣部落——人们为归属感（一种广义的爱）付出时间与金钱。"}
+  ],
+  myths:[
+    {t:"爱是本能无需经营", p:"爱需要理解、表达与维护。长期关系与长期事业一样，靠持续投入对抗熵增。"},
+    {t:"爱=占有", p:"爱是希望对方好，占有是希望对方属于自己。前者滋养，后者窒息。"}
+  ],
+  insights:[
+    {t:"爱的复利", p:"对家人、伙伴、用户投入的爱，会在长期产生信任与忠诚的复利——这是最值得的'低效'投资。"},
+    {t:"工作之爱", p:"选择你'有点爱'的领域深耕，热爱的强度决定你能走多远的极限。"}
+  ],
+  relations:["life","meaning","feeling","trust"]
+},
+{
+  id:"beauty", name:"美", cat:"mot",
+  tag:"秩序与和谐的感知体验，超越功能的深层价值",
+  essence:[
+    {t:"第一性", p:"人对形式（比例、节奏、对称、和谐、意外）产生的愉悦反应。美是秩序感与生命感的交汇，是人类共同的情感语言。"},
+    {t:"机制", p:"审美看似主观，却有可观察的规律（黄金比例、色彩和谐、节奏感），且随文化与社会演化。美的标准是'社会建构+神经本能'的混合体。"},
+    {t:"边界", p:"美是功能之上的溢价层：同一功能，更美的形式获得更多注意力、信任与支付意愿。审美即竞争力。"}
+  ],
+  value:[
+    {t:"溢价能力", p:"设计、品牌、包装、UI——美直接转化为定价权。Apple 的溢价本质是审美溢价。"},
+    {t:"情感入口", p:"美是第一个接触点：让人停下、记住、向往。在信息过载时代，美是稀缺注意力。"},
+    {t:"文明指标", p:"审美水平是文明成熟度的标志：城市、产品、内容的美感，反映一个社会的整体品质。"}
+  ],
+  mapping:[
+    {t:"设计与品牌", p:"优秀设计让产品从'能用'升级为'想拥有'——美是产品力的显性表达。"},
+    {t:"内容与媒体", p:"画面、排版、叙事的美感决定内容的传播力——美是流量的放大器。"},
+    {t:"空间与城市", p:"建筑、街区、公共空间的美感影响人的幸福与创造力，也是文旅经济的核心。"}
+  ],
+  myths:[
+    {t:"美是肤浅的", p:"美是深层的秩序体验。追求美不是浪费，是对品质与尊严的基本要求。"},
+    {t:"审美不可学习", p:"审美可以通过大量接触优质作品、理解设计原理而系统提升——它是可训练的能力。"}
+  ],
+  insights:[
+    {t:"审美即产品力", p:"无论软件、内容还是服务，把'美'当作功能之一来设计，是低成本高感知的差异化。"},
+    {t:"提升审美", p:"系统接触好设计、好建筑、好文字，审美品味会沉淀为个人与产品的隐形竞争力。"}
+  ],
+  relations:["feeling","meaning","language"]
+},
+{
+  id:"freedom", name:"自由", cat:"mot",
+  tag:"选择权的总量：不被生存与外界强制挤压的能力",
+  essence:[
+    {t:"第一性", p:"能自主选择的能力。自由不是'想做什么就做什么'，而是'有得选、选得起、选后能承担'——它是资源的函数。"},
+    {t:"机制", p:"自由由能力（技能、认知、健康）与资源（金钱、时间、信用）共同支撑。自由是长期积累的结果，不是天赋。"},
+    {t:"边界", p:"自由与责任、规则、他人自由并存。无约束的自由是幻觉，真正的自由是在约束中扩大选择空间。"}
+  ],
+  value:[
+    {t:"选择权", p:"自由的价值=可选项的丰富度。能拒绝不想做的事，能选择想成为的人，是最高级的自由。"},
+    {t:"创新土壤", p:"自由环境孕育试错与创造——创新本质上是'自由探索+低成本失败'的组合。"},
+    {t:"尊严基础", p:"经济自由（不被生存绑架）是人格独立与精神自由的前提。"}
+  ],
+  mapping:[
+    {t:"财务自由", p:"被动收入覆盖开支，是用钱购买'不被迫工作'的选择权——自由的物质形态。"},
+    {t:"职业自由", p:"技能组合越稀缺（技术+行业+表达），职业选择空间越大——能力是自由的硬通货。"},
+    {t:"言论与信息", p:"信息自由与表达自由是创新的土壤，也需在责任与规则内行使。"}
+  ],
+  myths:[
+    {t:"自由=无拘无束", p:"无约束的自由很快会被更大的不自由反噬（放纵、债务、失控）。自由=自律+能力+资源。"},
+    {t:"自由是免费的", p:"自由是昂贵的：它需要能力积累、财务储备与承担责任。向自由支付的学费是自律。"}
+  ],
+  insights:[
+    {t:"积累选择权", p:"把'扩大选择空间'作为长期目标：攒钱、学技能、建信用、保持健康——都是在购买自由。"},
+    {t:"以终为始", p:"定义你想要的自由形态（时间自由/财务自由/职业自由），反向设计当下的每一步。"}
+  ],
+  relations:["money","rule","meaning","time"]
+},
+{
+  id:"money", name:"钱", cat:"tool",
+  tag:"社会共同承认的劳动欠条，选择权与协作的通用凭证",
+  essence:[
+    {t:"第一性", p:"钱本身没有价值，它是全社会约定承认的'劳动欠条'与记账工具：记录你为社会贡献的价值，赋予你兑换他人劳动与物资的权利。"},
+    {t:"机制", p:"钱的本质是信任与信用的载体——其购买力由国家信用+整体生产力背书。钱可增发、会贬值，它是财富的凭证而非财富本身。"},
+    {t:"边界", p:"钱买得到服务与选择权，买不到爱、健康、能力、意义。以钱为目的会迷失，以价值创造为手段的赚钱才可持续。"}
+  ],
+  value:[
+    {t:"交换媒介", p:"钱让复杂分工成为可能：你不用拿代码直接换米面，而是先兑换成钱，再换取任何人的劳动。"},
+    {t:"延迟消费", p:"钱把今天的劳动存储为未来的选择权，是跨时间的价值运输工具。"},
+    {t:"选择权凭证", p:"钱=可随时兑换的自由度。财务储备是个人与企业的容错空间与机会成本承受力。"}
+  ],
+  mapping:[
+    {t:"现金流", p:"对个人是生存线，对企业是生命线。'赚钱'的本质是持续创造他人愿意付费的价值。"},
+    {t:"通胀与资产", p:"钱会随时间贬值，资产配置的本质是让欠条兑换成能对抗通胀的实物与生产性资产。"},
+    {t:"杠杆与风险", p:"借贷是拿未来劳动换取当下资源——杠杆放大收益也放大风险，是双刃剑。"}
+  ],
+  myths:[
+    {t:"钱=财富", p:"钱是财富的凭证。真正的财富是生产能力、物质、健康、时间与关系。超发货币稀释的是凭证，不是真实财富。"},
+    {t:"钱是万恶之源", p:"钱是中性的工具。贪婪与无序是人的问题。缺钱时的人格考验与有钱时的迷失同样真实。"}
+  ],
+  insights:[
+    {t:"价值换凭证", p:"把注意力从'怎么赚到钱'转向'我能为谁创造什么价值'——钱是价值创造的结果，不是目的。"},
+    {t:"储备选择权", p:"建立6-12个月支出的安全垫，让你在机会来临时有说'是'的底气，在风险来临时有说'不'的余地。"}
+  ],
+  relations:["trust","freedom","time","rule","power"]
+},
+{
+  id:"power", name:"权力", cat:"tool",
+  tag:"影响他人行为与资源分配的能力，中性的社会杠杆",
+  essence:[
+    {t:"第一性", p:"让事情按自己意志发生的能力：支配资源、影响决策、塑造规则。权力是组织与社会的核心变量。"},
+    {t:"机制", p:"权力的来源多样：强制力（法律、暴力）、资源（资本、数据）、专业（知识、技能）、制度（职位）、人格（威望、魅力）。"},
+    {t:"边界", p:"权力是中性的杠杆——用于创造则繁荣，用于掠夺则腐败。权力越大，责任与反噬风险越大。"}
+  ],
+  value:[
+    {t:"推动变革", p:"权力把意愿转化为行动：创业者的权力意识（决定方向、调配资源）是组织启动的前提。"},
+    {t:"资源协调", p:"重大事业需要调动远超个体的资源，权力是协调复杂协作的必备工具。"},
+    {t:"定义权", p:"制定标准、掌握话语权的人获得长期结构性收益——权力是规则的红利。"}
+  ],
+  mapping:[
+    {t:"控制权", p:"创业中的股权与决策权之争，本质是未来收益与方向的权力分配。"},
+    {t:"平台权力", p:"算法推荐、审核规则、流量分配——平台拥有数字时代的新型权力。"},
+    {t:"专业权威", p:"在知识密集领域，专业能力就是权力——它不依赖职位，难以被剥夺。"}
+  ],
+  myths:[
+    {t:"权力=职位", p:"职位只是权力的一种来源。真正的权力来自资源、专业、信息与信任的组合。"},
+    {t:"权力是坏的", p:"权力本身中性。没有权力的理想主义者往往无法兑现理想——'赋能'也是权力的善意使用。"}
+  ],
+  insights:[
+    {t:"积累多重权力", p:"专业+信用+资源+关系网的多维权力组合，比单一职位更稳固、更持久。"},
+    {t:"善用权力", p:"权力是责任：用于放大他人价值（授权、赋能）的权力会自我强化，用于控制的权力会自我腐蚀。"}
+  ],
+  relations:["rule","org","info","money"]
+}
+];
+
+const RELATIONS = [
+  {src:"matter",    dst:"energy",    type:"支撑", note:"能量的获取与存储依赖物质载体"},
+  {src:"energy",    dst:"tech",      type:"驱动", note:"技术系统运转的底层燃料"},
+  {src:"matter",    dst:"tech",      type:"支撑", note:"技术的物质基础"},
+  {src:"time",      dst:"knowledge", type:"条件", note:"知识积累需要时间"},
+  {src:"info",      dst:"knowledge", type:"转化", note:"知识是被验证与组织的信息"},
+  {src:"knowledge", dst:"tech",      type:"转化", note:"技术是知识的可执行化"},
+  {src:"language",  dst:"knowledge", type:"载体", note:"知识的存储与传递依赖语言"},
+  {src:"language",  dst:"trust",     type:"支撑", note:"承诺与契约的表达依赖语言"},
+  {src:"trust",     dst:"money",     type:"母体", note:"货币是制度化的社会信任"},
+  {src:"trust",     dst:"rule",      type:"互补", note:"制度用规则兜底信任"},
+  {src:"rule",      dst:"org",       type:"支撑", note:"组织运行依赖规则框架"},
+  {src:"org",       dst:"tech",      type:"承载", note:"复杂技术由组织协作实现"},
+  {src:"org",       dst:"knowledge", type:"沉淀", note:"组织将个人经验固化为集体知识"},
+  {src:"life",      dst:"feeling",   type:"派生", note:"感受是生命体的评价系统"},
+  {src:"feeling",   dst:"meaning",   type:"驱动", note:"意义回应感受的深层需求"},
+  {src:"life",      dst:"meaning",   type:"约束", note:"生命的有限性赋予意义分量"},
+  {src:"feeling",   dst:"beauty",    type:"派生", note:"美是秩序带来的愉悦感受"},
+  {src:"feeling",   dst:"love",      type:"联结", note:"爱是感受的深度化"},
+  {src:"love",      dst:"trust",     type:"强化", note:"爱深化信任，信任滋养爱"},
+  {src:"meaning",   dst:"org",       type:"凝聚", note:"愿景是组织的意义引擎"},
+  {src:"freedom",   dst:"money",     type:"支撑", note:"金钱购买选择权，即经济自由"},
+  {src:"freedom",   dst:"meaning",   type:"前提", note:"自由选择让意义成为可能"},
+  {src:"rule",      dst:"freedom",   type:"边界", note:"规则界定自由的边界"},
+  {src:"rule",      dst:"power",     type:"互构", note:"权力制定规则，规则赋予权力"},
+  {src:"power",     dst:"org",       type:"核心", note:"组织内权力结构决定协作效率"},
+  {src:"info",      dst:"power",     type:"来源", note:"信息优势是权力来源之一"},
+  {src:"knowledge", dst:"power",     type:"来源", note:"专业知识是持久权力"},
+  {src:"time",      dst:"money",     type:"兑换", note:"时间换钱是线性的，钱换时间则是杠杆"},
+  {src:"money",     dst:"freedom",   type:"购买", note:"财务储备购买不被迫的选择权"},
+  {src:"tech",      dst:"time",      type:"解放", note:"技术以效率的方式释放人的时间"},
+  {src:"tech",      dst:"life",      type:"改造", note:"技术延展并改造生命（医疗、生物科技）"}
+];
+
+/* ============================================================
+ * 应用逻辑层：路由、渲染、交互
+ * ============================================================ */
+const ICONS = {
+  essence:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3.5M12 18.5V22M2 12h3.5M18.5 12H22M4.9 4.9l2.5 2.5M16.6 16.6l2.5 2.5M19.1 4.9l-2.5 2.5M7.4 16.6l-2.5 2.5"/></svg>',
+  value:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17.2 6.6 19.8l1-6.1L3.2 9.4l6.1-.9z"/></svg>',
+  map:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l4-6 4 8 5-7 5 9"/><path d="M3 20h18"/><path d="M3 17h18"/></svg>',
+  myth:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5l5 5M14.5 9.5l-5 5"/></svg>',
+  insight:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 00-4 10.5c.8.8 1.5 1.9 1.5 3.5h5c0-1.6.7-2.7 1.5-3.5A6 6 0 0012 3z"/><path d="M9.5 20.5h5"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>'
+};
+
+const app = document.getElementById('app');
+let netChart = null;
+
+/* ---------- 工具 ---------- */
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function catColor(id){ return CATS[id].color; }
+function catName(id){ return CATS[id].name; }
+function byId(id){ return CONCEPTS.find(c=>c.id===id); }
+function relFor(id){
+  return RELATIONS.filter(r=>r.src===id||r.dst===id)
+    .map(r=>({ other: r.src===id?r.dst:r.src, type:r.type, note:r.note }));
+}
+
+/* ---------- 视图：首页 / 概念库 ---------- */
+function viewHome(){
+  let catHTML = Object.entries(CATS).map(([k,v])=>
+    `<button class="filter-btn" data-cat="${k}">${v.name} · ${CONCEPTS.filter(c=>c.cat===k).length}</button>`
+  ).join('');
+  app.innerHTML = `
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <span class="hero-kicker">本质 · 价值 · 现实映射</span>
+      <h1>把世界的基本性事物<br><em>拆开来看</em></h1>
+      <p class="lead">钱、时间、信任、知识、能量、意义……这些我们日用而不觉的基石，<br>各自是什么、为什么重要、如何在现实中运转？</p>
+      <p class="sub">选择下方任一基石，或输入任何概念，交给深度分析引擎。</p>
+      <div class="axis">
+        <div class="axis-step">
+          <span class="axis-num">01 · ESSENCE</span>
+          <h3>本质</h3>
+          <p>它到底是什么？由什么构成、依赖什么、边界在哪？</p>
+          <span class="axis-arrow"></span>
+        </div>
+        <div class="axis-step">
+          <span class="axis-num">02 · VALUE</span>
+          <h3>价值</h3>
+          <p>它为什么重要？为谁创造价值？失去它会怎样？</p>
+          <span class="axis-arrow"></span>
+        </div>
+        <div class="axis-step">
+          <span class="axis-num">03 · MAPPING</span>
+          <h3>现实映射</h3>
+          <p>它如何在现实世界运转？机会、风险与误区在哪里？</p>
+          <span class="axis-arrow"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="toolbar">
+        <div class="searchbox">
+          ${ICONS.search}
+          <input id="q" type="text" placeholder="搜索基石，如：钱 / 时间 / 信任…" autocomplete="off">
+        </div>
+        <div class="filters">
+          <button class="filter-btn on" data-cat="all">全部 · ${CONCEPTS.length}</button>
+          ${catHTML}
+        </div>
+      </div>
+      <p class="count-hint" id="countHint">共 ${CONCEPTS.length} 个世界基石</p>
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>`;
+
+  const grid = document.getElementById('grid');
+  const countHint = document.getElementById('countHint');
+  let curCat = 'all', curQ = '';
+
+  function renderGrid(){
+    const list = CONCEPTS.filter(c=>{
+      const okCat = curCat==='all' || c.cat===curCat;
+      const okQ = !curQ || (c.name+c.tag+c.essence.map(e=>e.p).join('')).toLowerCase().includes(curQ.toLowerCase());
+      return okCat && okQ;
+    });
+    countHint.textContent = `共 ${list.length} 个结果` + (curCat!=='all'?`（${catName(curCat)}）`:'');
+    if(!list.length){
+      grid.innerHTML = `<div class="empty"><b>没有匹配的基石</b>换个关键词，或直接使用「深度分析器」剖析任意概念。</div>`;
+      return;
+    }
+    grid.innerHTML = list.map(c=>`
+      <div class="c-card" style="--cc:${catColor(c.cat)}" data-id="${c.id}">
+        <div class="c-card-head"><span class="c-card-cat">${catName(c.cat)}</span></div>
+        <div class="c-card-name">${esc(c.name)}</div>
+        <div class="c-card-tag">${esc(c.tag)}</div>
+        <div class="c-card-meta"><span>${c.essence.length} 层本质 · ${c.mapping.length} 处映射</span><b>深度分析 →</b></div>
+      </div>`).join('');
+    grid.querySelectorAll('.c-card').forEach(el=>{
+      el.addEventListener('click', ()=> location.hash = '#/concept/'+el.dataset.id);
+    });
+  }
+
+  document.querySelectorAll('.filter-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('on'));
+      btn.classList.add('on');
+      curCat = btn.dataset.cat;
+      renderGrid();
+    });
+  });
+  document.getElementById('q').addEventListener('input', e=>{
+    curQ = e.target.value.trim();
+    renderGrid();
+  });
+  renderGrid();
+}
+
+/* ---------- 视图：概念详情 ---------- */
+function viewConcept(id){
+  const c = byId(id);
+  if(!c){ location.hash = '#/'; return; }
+  const color = catColor(c.cat);
+  const rels = relFor(id);
+
+  const itemHTML = (arr)=> arr.map((x,i)=>`
+    <div class="d-item">
+      <div class="d-item-title"><i>${String(i+1).padStart(2,'0')}</i>${esc(x.t)}</div>
+      <p>${esc(x.p)}</p>
+    </div>`).join('');
+
+  const mythHTML = c.myths.map(x=>`
+    <div class="d-item"><div class="myth-item"><span class="myth-x">×</span><div><div class="d-item-title">${esc(x.t)}</div><p>${esc(x.p)}</p></div></div></div>`).join('');
+
+  const insightHTML = c.insights.map(x=>`
+    <div class="d-item"><div class="insight-item"><span class="insight-bullet"></span><div><div class="d-item-title">${esc(x.t)}</div><p>${esc(x.p)}</p></div></div></div>`).join('');
+
+  const relChips = rels.map(r=>{
+    const other = byId(r.other);
+    return `<a class="rel-chip" href="#/concept/${other.id}"><span class="dot" style="background:${catColor(other.cat)}"></span>${esc(other.name)}<small>${esc(r.type)}</small></a>`;
+  }).join('');
+
+  app.innerHTML = `
+  <section class="detail-hero">
+    <div class="wrap">
+      <div class="crumb"><a href="#/" data-route>概念库</a><span>／</span><span>${esc(c.name)}</span></div>
+      <div class="detail-title-row">
+        <div class="detail-badge" style="background:${color}">${esc(c.name[0])}</div>
+        <div class="detail-titles">
+          <span class="detail-cat">${catName(c.cat)} · ${CATS[c.cat].desc}</span>
+          <h1>${esc(c.name)}</h1>
+          <p class="detail-tag">${esc(c.tag)}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="detail-body wrap">
+    <div class="d-block">
+      <div class="d-block-head">
+        <span class="d-icon" style="background:rgba(62,92,75,.12);color:#3E5C4B">${ICONS.essence}</span>
+        <div><h2>本质</h2><span class="en">ESSENCE · 它到底是什么</span></div>
+      </div>
+      <div class="d-list">${itemHTML(c.essence)}</div>
+    </div>
+    <div class="d-block">
+      <div class="d-block-head">
+        <span class="d-icon" style="background:rgba(166,124,46,.13);color:#A67C2E">${ICONS.value}</span>
+        <div><h2>价值</h2><span class="en">VALUE · 它为什么重要</span></div>
+      </div>
+      <div class="d-list">${itemHTML(c.value)}</div>
+    </div>
+    <div class="d-block">
+      <div class="d-block-head">
+        <span class="d-icon" style="background:rgba(166,61,43,.10);color:#A63D2B">${ICONS.map}</span>
+        <div><h2>现实映射</h2><span class="en">MAPPING · 它如何运转</span></div>
+      </div>
+      <div class="d-list">${itemHTML(c.mapping)}</div>
+    </div>
+  </section>
+
+  <section class="detail-body wrap" style="padding-top:0">
+    <div class="d-block">
+      <div class="d-block-head">
+        <span class="d-icon" style="background:rgba(74,90,114,.12);color:#4A5A72">${ICONS.myth}</span>
+        <div><h2>常见误区</h2><span class="en">MYTHS · 被误解之处</span></div>
+      </div>
+      <div class="d-list">${mythHTML}</div>
+    </div>
+    <div class="d-block">
+      <div class="d-block-head">
+        <span class="d-icon" style="background:rgba(176,138,62,.14);color:#B08A3E">${ICONS.insight}</span>
+        <div><h2>现实启示</h2><span class="en">INSIGHTS · 如何运用</span></div>
+      </div>
+      <div class="d-list">${insightHTML}</div>
+    </div>
+    <div class="d-block">
+      <div class="d-block-head">
+        <span class="d-icon" style="background:rgba(62,92,75,.12);color:#3E5C4B">${ICONS.value}</span>
+        <div><h2>关联基石</h2><span class="en">RELATIONS · 与谁相连</span></div>
+      </div>
+      <div class="d-list" style="gap:8px">
+        ${rels.length? relChips : '<p style="font-size:13px;color:var(--ink-3)">暂无关联记录</p>'}
+      </div>
+    </div>
+  </section>`;
+}
+
+/* ---------- 视图：关系网络 ---------- */
+function viewNetwork(){
+  app.innerHTML = `
+  <section class="section" style="padding-top:44px">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 class="section-title">基石关系网络</h2>
+        <span class="section-desc">基石如何互相支撑、转化与约束</span>
+      </div>
+      <div class="net-wrap">
+        <div class="net-legend">
+          ${Object.entries(CATS).map(([k,v])=>`<span class="lg"><span class="sw" style="background:${v.color}"></span>${v.name}</span>`).join('')}
+          <span class="lg" style="margin-left:auto">节点大小 = 关联数量 · 点击节点查看详情</span>
+        </div>
+        <div id="netChart"></div>
+        <p class="net-tip">这张图展示的是基石之间的深层结构：信任是货币的母体，知识由信息转化而来，技术是知识的可执行化，自由与金钱相互支撑、又被规则界定边界。理解这些连接，比孤立地记住每个概念更有用。</p>
+      </div>
+    </div>
+  </section>`;
+
+  const el = document.getElementById('netChart');
+  if(netChart){ netChart.dispose(); }
+  netChart = echarts.init(el);
+
+  /* 环形布局：按分类分区，确定性渲染 */
+  const catOrder = ['hard','civ','mot','tool'];
+  const perCat = 2 * Math.PI / catOrder.length;
+  const R = 235;
+  const posMap = {};
+  catOrder.forEach((cat,ci)=>{
+    const list = CONCEPTS.filter(c=>c.cat===cat);
+    list.forEach((c,li)=>{
+      const startAngle = -Math.PI/2 + ci*perCat;
+      const angle = startAngle + (li + 0.5) * (perCat / list.length);
+      posMap[c.id] = { x: Math.cos(angle)*R, y: Math.sin(angle)*R };
+    });
+  });
+
+  const nodes = CONCEPTS.map(c=>{
+    const deg = RELATIONS.filter(r=>r.src===c.id||r.dst===c.id).length;
+    return {
+      id:c.id, name:c.name, value:deg,
+      x:posMap[c.id].x, y:posMap[c.id].y,
+      symbolSize: 26 + deg*5,
+      itemStyle:{ color:catColor(c.cat) },
+      category:catOrder.indexOf(c.cat),
+      label:{ show:true, fontSize:13, color:'#232B29', fontFamily:'"Noto Serif SC",serif', fontWeight:600 }
+    };
+  });
+  const links = RELATIONS.map(r=>({ source:r.src, target:r.dst, value:r.type }));
+
+  netChart.setOption({
+    tooltip:{
+      trigger:'item',
+      backgroundColor:'#232B29', borderWidth:0,
+      textStyle:{ color:'#F3EFE6', fontSize:12.5 },
+      formatter: p=>{
+        if(p.dataType==='edge'){
+          const l = RELATIONS.find(r=>(r.src===p.data.source && r.dst===p.data.target)||(r.src===p.data.target && r.dst===p.data.source));
+          return `<b>${esc(byId(p.data.source).name)} → ${esc(byId(p.data.target).name)}</b><br>${esc(l.type)}：${esc(l.note)}`;
+        }
+        const c = byId(p.data.id);
+        return `<b style="font-size:14px">${esc(c.name)}</b><br><span style="color:#B08A3E">${catName(c.cat)}</span><br>${esc(c.tag)}<br><span style="color:#B08A3E">点击查看深度分析</span>`;
+      }
+    },
+    legend:{
+      data:Object.entries(CATS).map(([k,v])=>v.name),
+      icon:'circle', itemWidth:9, itemHeight:9,
+      textStyle:{ color:'#4A554F', fontSize:12 },
+      top:0
+    },
+    series:[{
+      type:'graph', layout:'none',
+      roam:true, draggable:true, data:nodes, links,
+      categories:Object.entries(CATS).map(([k,v])=>({ name:v.name })),
+      lineStyle:{ color:'source', curveness:0.08, width:1.4, opacity:0.55 },
+      emphasis:{ focus:'adjacency', lineStyle:{ width:2.6, opacity:0.9 }, label:{ fontSize:15 } },
+      edgeSymbol:['none','arrow'], edgeSymbolSize:6,
+      labelLayout:{ hideOverlap:true }
+    }]
+  });
+  netChart.on('click', p=>{ if(p.dataType!=='edge' && p.data.id) location.hash = '#/concept/'+p.data.id; });
+}
+
+/* ---------- 视图：深度分析器 ---------- */
+const SUGGESTIONS = ['机会','内卷','幸福','自由','品牌','算法','信任','复利','风口','焦虑','创造力','孤独'];
+
+function viewAnalyze(initQ){
+  app.innerHTML = `
+  <section class="analyzer-hero">
+    <div class="wrap">
+      <h1>深度分析器</h1>
+      <p>输入任何概念，本引擎将沿着「本质 → 价值 → 现实映射」的框架，生成一套结构化的分析引导与思考路径。你无需成为哲学家，也能把一件事想得足够深。</p>
+      <div class="ana-input">
+        <input id="anaIn" type="text" placeholder="输入一个概念，例如：机会" autocomplete="off" maxlength="24">
+        <button class="ana-go" id="anaGo">开始分析</button>
+      </div>
+      <div class="ana-suggest">试试：${SUGGESTIONS.map(s=>`<button data-s="${s}">${s}</button>`).join('')}</div>
+      <div class="ana-note">说明：深度分析器提供的是「分析框架与引导问题」，用于激发你自己的思考——真正深刻的理解，需要你把框架套用到具体场景中完成。框架灵感源自本库 18 个基石的分析方法。</div>
+    </div>
+  </section>
+  <section class="ana-result wrap" id="anaResult"></section>`;
+
+  const inp = document.getElementById('anaIn');
+  const go  = document.getElementById('anaGo');
+  const res = document.getElementById('anaResult');
+
+  function run(){
+    const q = inp.value.trim();
+    if(!q){ inp.focus(); return; }
+    const qe = esc(q);
+    const hasConcept = CONCEPTS.find(c=>c.name===q);
+    const ref = hasConcept;
+    const refHTML = ref
+      ? `<div class="ana-cell" style="grid-column:1/-1;border-color:rgba(176,138,62,.4);background:rgba(176,138,62,.05)">
+          <h4><span class="qnum">☆</span>已收录基石</h4>
+          <p>「${esc(ref.name)}」已在概念库中收录。点击查看完整的深度分析：</p>
+          <p class="eg"><a href="#/concept/${ref.id}" style="color:var(--accent);font-weight:600;border-bottom:1px solid var(--accent)">打开「${esc(ref.name)}」完整分析 →</a></p>
+        </div>` : '';
+
+    res.innerHTML = `
+      <div class="ana-q-title">第一步 · 追问本质</div>
+      <div class="ana-q-sub">回答以下问题，界定「${qe}」到底是什么。</div>
+      <div class="ana-grid">
+        <div class="ana-cell"><h4><span class="qnum">1</span>它是什么？</h4><p>用一句话定义「${qe}」，再追问：这个定义是否经得起反例？</p><p class="eg"><b>示例</b>（以「钱」为例）：钱是社会共同承认的劳动欠条，而非财富本身。</p></div>
+        <div class="ana-cell"><h4><span class="qnum">2</span>它不是什么？</h4><p>列出它与容易混淆事物的边界：它不是 X，不是 Y。边界越清晰，本质越明确。</p><p class="eg"><b>示例</b>：钱不是财富（财富是生产与物质），钱只是兑换凭证。</p></div>
+        <div class="ana-cell"><h4><span class="qnum">3</span>它由什么构成？</h4><p>拆解「${qe}」的组成要素：它的原料、前提、底层机制各是什么？</p><p class="eg"><b>示例</b>：信任 = 长期一致的行为 + 制度背书 + 声誉信号。</p></div>
+        <div class="ana-cell"><h4><span class="qnum">4</span>它依赖什么存在？</h4><p>如果某个支撑消失，「${qe}」还成立吗？这能暴露它的真实根基。</p><p class="eg"><b>示例</b>：货币依赖国家信用与生产力，信用崩塌则货币贬值。</p></div>
+      </div>
+
+      <div class="ana-q-title">第二步 · 拆解价值</div>
+      <div class="ana-q-sub">理解「${qe}」为什么重要、为谁创造价值。</div>
+      <div class="ana-grid">
+        <div class="ana-cell"><h4><span class="qnum">1</span>对谁有价值？</h4><p>列出「${qe}」的直接受益者与间接受益者，谁最依赖它？</p><p class="eg"><b>示例</b>：信任对交易双方、平台、社会整体都有价值。</p></div>
+        <div class="ana-cell"><h4><span class="qnum">2</span>价值从哪里来？</h4><p>它解决什么问题、满足什么需求？价值不是天然的，而是相对问题的。</p><p class="eg"><b>示例</b>：时间的价值来自稀缺与不可逆——它让选择产生机会成本。</p></div>
+        <div class="ana-cell"><h4><span class="qnum">3</span>失去它会怎样？</h4><p>反向推演：如果「${qe}」消失或稀缺，什么会崩溃？崩溃面就是价值面。</p><p class="eg"><b>示例</b>：失去信任，交易成本暴涨，市场退化为熟人社会。</p></div>
+        <div class="ana-cell"><h4><span class="qnum">4</span>它能被替代吗？</h4><p>寻找「${qe}」的替代品：替代成本越高，价值越稳固。</p><p class="eg"><b>示例</b>：效率工具可部分替代时间，但不可完全替代——时间是终局资源。</p></div>
+      </div>
+
+      <div class="ana-q-title">第三步 · 现实映射</div>
+      <div class="ana-q-sub">把「${qe}」放回真实世界：它在哪运转、谁靠它赚钱、坑在哪里。</div>
+      <div class="ana-grid">
+        <div class="ana-cell"><h4><span class="qnum">1</span>在现实中哪里体现？</h4><p>列举「${qe}」在生活、产业、社会中的具体载体与现象。</p><p class="eg"><b>示例</b>：信任体现在品牌溢价、征信体系、平台担保中。</p></div>
+        <div class="ana-cell"><h4><span class="qnum">2</span>谁在靠它赚钱？</h4><p>找到把「${qe}」商品化、服务化的商业模式——那里通常是风口。</p><p class="eg"><b>示例</b>：信息差（资讯、中介、教育）、时间（节省时间的工具）、信任（担保、认证）。</p></div>
+        <div class="ana-cell"><h4><span class="qnum">3</span>它如何被交易？</h4><p>「${qe}」的定价机制是什么？谁定价、按什么定价、是否有市场？</p><p class="eg"><b>示例</b>：注意力被广告市场定价，按曝光与转化计费。</p></div>
+        <div class="ana-cell"><h4><span class="qnum">4</span>坑与误区在哪？</h4><p>关于「${qe}」最常见的误解是什么？盲目跟风的风险是什么？</p><p class="eg"><b>示例</b>：把「信息多」当「知识多」，把「涨薪」当「财富积累」。</p></div>
+      </div>
+
+      <div class="ana-q-title">第四步 · 收束与行动</div>
+      <div class="ana-q-sub">把分析落回自己身上，形成可执行判断。</div>
+      <div class="ana-grid">
+        <div class="ana-cell"><h4><span class="qnum">1</span>一句话本质</h4><p>把前三步压缩成一句话：「${qe}」在本质上是什么？</p><p class="eg"><b>示例</b>：机会 = 变化 × 刚需 × 你的差异化能力。</p></div>
+        <div class="ana-cell"><h4><span class="qnum">2</span>与我相关吗</h4><p>「${qe}」与我的职业、资产、关系、成长有怎样的连接点？重要级如何？</p><p class="eg"><b>示例</b>：对工程师，「时间」意味着用系统与工具把自己从重复劳动中释放。</p></div>
+        <div class="ana-cell"><h4><span class="qnum">3</span>最小行动</h4><p>基于以上分析，本周可以做的、最小的一个行动是什么？</p><p class="eg"><b>示例</b>：如果分析出「信任」重要，就去完成一次高质量交付并请对方反馈。</p></div>
+        <div class="ana-cell"><h4><span class="qnum">4</span>验证标准</h4><p>用什么指标判断你对「${qe}」的理解是对的？设定一个可观测的验证点。</p><p class="eg"><b>示例</b>：能否用一句话向别人讲清楚它，且对方能复述出要点。</p></div>
+      </div>
+      ${refHTML}
+    `;
+    res.classList.add('show');
+    res.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  go.addEventListener('click', run);
+  inp.addEventListener('keydown', e=>{ if(e.key==='Enter') run(); });
+  document.querySelectorAll('.ana-suggest button').forEach(b=>{
+    b.addEventListener('click', ()=>{ inp.value = b.dataset.s; run(); });
+  });
+  if(initQ){ inp.value = initQ; run(); }
+}
+
+/* ---------- 路由 ---------- */
+function route(){
+  const hash = location.hash || '#/';
+  const navs = document.querySelectorAll('.nav-links a');
+  navs.forEach(a=>a.classList.toggle('on', a.getAttribute('href')===hash));
+
+  if(hash.startsWith('#/concept/')){
+    viewConcept(decodeURIComponent(hash.slice(10)));
+  } else if(hash==='#/network'){
+    viewNetwork();
+  } else if(hash.startsWith('#/analyze')){
+    let initQ = '';
+    const qi = hash.indexOf('?q=');
+    if(qi!==-1) initQ = decodeURIComponent(hash.slice(qi+3));
+    viewAnalyze(initQ);
+  } else {
+    viewHome();
+  }
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
+window.addEventListener('hashchange', route);
+window.addEventListener('resize', ()=>{ if(netChart) netChart.resize(); });
+document.addEventListener('click', e=>{
+  const a = e.target.closest('a[data-route]');
+  if(a){ e.preventDefault(); location.hash = a.getAttribute('href'); }
+});
+
+/* ---------- 返回顶部 ---------- */
+const backTop = document.getElementById('backTop');
+window.addEventListener('scroll', ()=>{
+  backTop.classList.toggle('show', window.scrollY > 600);
+});
+backTop.addEventListener('click', ()=> window.scrollTo({top:0, behavior:'smooth'}));
+
+route();
+</script>
+</body>
+</html>
